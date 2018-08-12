@@ -10,15 +10,11 @@ module.exports = function (app) {
       type: 'line'
     },
     autoCommandKeys: true,
+    mouse: true,
     commands: {
       'Add Task': {
         callback() {
-          const taskBox = createTaskBox(app);
-          taskBox.focus();
-          taskBox.on('submit', () => {
-            taskBox.destroy();
-            app.screen.render();
-          })
+          createTaskBox(app);
         }
       }
     }

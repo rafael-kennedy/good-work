@@ -1,7 +1,6 @@
 const blessed = require('blessed');
 
-
-module.exports = function (app) {
+module.exports = function (app, parentTask) {
   const textbox = blessed.textarea({
     inputOnFocus: true,
     shrink: true,
@@ -81,17 +80,16 @@ module.exports = function (app) {
     }
   })
 
-  cancelButton.on('press', () => {
+  cancelButton.once('press', () => {
     form.cancel();
   })
-  cancelButton.on('click', () => {
+  cancelButton.once('click', () => {
     form.cancel();
   })
-
-  submitButton.on('press', () => {
+  submitButton.once('press', () => {
     form.submit();
   })
-  submitButton.on('click', () => {
+  submitButton.once('click', () => {
     form.submit();
   })
 
@@ -114,22 +112,21 @@ module.exports = function (app) {
       submitButton,
     ]
   })
-  // form.addLine('To Do Text:')
-  // form.append(textbox)
-  // form.append(submitButton)
 
-  form.on('submit', (data) => {
-    app.emit('create-task', data);
+  form.once('submit', (data) => {
+    app.emit('create-task', data, parentTask);
     form.destroy(form);
     app.screen.render();
-  })
+  });
 
-  form.on('cancel', (data) => {
+  form.once('cancel', (data) => {
     form.destroy(form);
     app.screen.render();
-  })
+  });
 
-  app.screen.append(form)
+  app.screen.append(form);
+  app.screen.render();
+  form.focus();
 
   return form;
 }

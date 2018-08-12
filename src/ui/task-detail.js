@@ -22,13 +22,8 @@ const editorSettings = {
   left: 5
 }
 
-const splitLines = (txt, width = 30) => {
-  return txt.split(new RegExp(`(.{0,${width}}\n?)`))
-    .filter(v => !!v)
-    .map(v => v.replace('\n', ''))
-}
-
 function makeRow(task, app, position) {
+  const taskEmit = (evt) => () => app.emit(evt, task);
   const depthGap = 2;
   const checkbox = blessed.box({
     left: depthGap,
@@ -36,13 +31,11 @@ function makeRow(task, app, position) {
     height: 1,
     content: task.done ? '☑' : '☐'
   })
-  const lines = splitLines(task.text)
-  const displayText = lines.join('\n')
   const text = blessed.box({
     width: 33,
-    height: lines.length,
+    shrink: true,
     left: depthGap + 4,
-    content: displayText
+    content: task.text
   });
   const addButton = blessed.button({
     width: 3,
@@ -67,6 +60,18 @@ function makeRow(task, app, position) {
       }
     }
   })
+  const deleteButton = blessed.button({
+    right: 1,
+    height: 1,
+    width: 6,
+    top: 1,
+    content: 'DELETE',
+    style: {
+      hover: {
+        bg: 'red'
+      }
+    }
+  })
   const row = blessed.box({
     draggable: true,
     left: 50,
@@ -79,9 +84,10 @@ function makeRow(task, app, position) {
       checkbox,
       text,
       addButton,
-      closeBox
+      closeBox,
+      deleteButton
     ],
-    height: lines.length + 2,
+    shrink: true,
     ...position || {}
   })
 
@@ -104,14 +110,15 @@ function makeRow(task, app, position) {
     app.screen.render();
   })
 
-  checkbox.once('click', () => app.emit('mark-done', task));
-  closeBox.once('click', () => closeBox.press())
+  checkbox.once('click', taskEmit('mark-done'));
+  closeBox.once('click', () => closeBox.press());
   closeBox.once('press', () => {
     row.destroy();
     app.screen.render();
   });
+  deleteButton.once('click', taskEmit('delete-task'))
   addButton.once('click', () => addButton.press());
-  addButton.once('press', () => app.emit('add-subtask', task));
+  addButton.once('press', () => taskEmit('add-subtask'));
   return row;
 }
 
